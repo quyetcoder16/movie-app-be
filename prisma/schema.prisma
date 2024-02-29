@@ -29,16 +29,16 @@ model CumRap {
 
 model DatVe {
   ma_ve         Int        @id @default(autoincrement())
-  tai_khoan     Int?
+  user_id       Int?
   ma_lich_chieu Int?
   ma_ghe        Int?
-  NguoiDung     NguoiDung? @relation(fields: [tai_khoan], references: [tai_khoan], onDelete: NoAction, onUpdate: NoAction, map: "DatVe_ibfk_1")
+  NguoiDung     NguoiDung? @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "DatVe_ibfk_1")
   LichChieu     LichChieu? @relation(fields: [ma_lich_chieu], references: [ma_lich_chieu], onDelete: NoAction, onUpdate: NoAction, map: "DatVe_ibfk_2")
   Ghe           Ghe?       @relation(fields: [ma_ghe], references: [ma_ghe], onDelete: NoAction, onUpdate: NoAction, map: "DatVe_ibfk_3")
 
   @@index([ma_ghe], map: "ma_ghe")
   @@index([ma_lich_chieu], map: "ma_lich_chieu")
-  @@index([tai_khoan], map: "tai_khoan")
+  @@index([user_id], map: "user_id")
 }
 
 model Ghe {
@@ -74,7 +74,7 @@ model LichChieu {
 }
 
 model NguoiDung {
-  tai_khoan       Int     @id @default(autoincrement())
+  user_id         Int     @id @default(autoincrement())
   ho_ten          String? @db.VarChar(255)
   email           String? @db.VarChar(255)
   so_dt           String? @db.VarChar(30)

@@ -10,6 +10,8 @@ export class UserService {
 
   prisma = new PrismaClient();
 
+
+
   async getUserByEmail(email: string): Promise<ResponseData> {
     try {
       const user = await this.prisma.nguoiDung.findFirst({

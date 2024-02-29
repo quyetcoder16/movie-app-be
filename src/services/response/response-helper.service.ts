@@ -6,7 +6,7 @@ import { ResponseData } from './response.interface';
 @Injectable()
 export class ResponseHelperService {
     sendResponse(@Res() res: Response, responseData: ResponseData): void {
-        res.status(responseData.status).json(responseData.data);
+        res.status(responseData.status).json(responseData);
     }
 
     createResponse(status: number, message: string, data?: any): ResponseData {

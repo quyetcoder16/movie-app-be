@@ -181,7 +181,7 @@ INSERT INTO LichChieu (ma_rap, ma_phim, ngay_gio_chieu, gia_ve) VALUES
 
 
 CREATE TABLE NguoiDung(
-	tai_khoan int PRIMARY KEY AUTO_INCREMENT,
+	user_id int PRIMARY KEY AUTO_INCREMENT,
 	ho_ten VARCHAR(255),
 	email VARCHAR(255),
 	so_dt VARCHAR(30),
@@ -205,15 +205,15 @@ INSERT INTO NguoiDung (ho_ten, email, so_dt, mat_khau, loai_nguoi_dung) VALUES
 
 CREATE TABLE DatVe(
 	ma_ve INT PRIMARY KEY AUTO_INCREMENT,
-	tai_khoan INT,
-	FOREIGN KEY(tai_khoan) REFERENCES NguoiDung(tai_khoan),
+	user_id INT,
+	FOREIGN KEY(user_id) REFERENCES NguoiDung(user_id),
 	ma_lich_chieu INT,
 	FOREIGN KEY(ma_lich_chieu) REFERENCES LichChieu(ma_lich_chieu),
 	ma_ghe INT,
 	FOREIGN KEY(ma_ghe) REFERENCES Ghe(ma_ghe)
 );
 
-INSERT INTO DatVe (tai_khoan, ma_lich_chieu, ma_ghe) VALUES
+INSERT INTO DatVe (user_id, ma_lich_chieu, ma_ghe) VALUES
 (1, 1, 1),
 (2, 2, 2),
 (3, 3, 3),
