@@ -6,13 +6,17 @@ import { UserService } from 'src/user/user.service';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { SignInDTO } from './dto/sign-in.dto';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly responseHelperService: ResponseHelperService,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
   ) { }
 
   prisma = new PrismaClient();
@@ -46,21 +50,39 @@ export class AuthService {
         data: objNewUser
       });
 
-      return this.responseHelperService.createResponse(HttpStatus.OK, "sign up successful!", newUser);
+      return this.responseHelperService.createResponse(HttpStatus.CREATED, "sign up successful!", newUser);
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server is error", error);
     }
   }
 
-  async dangNhapService(user: SignInDTO): Promise<ResponseData> {
+  async validateUserByJwt(payload: any) {
+
+    const user: ResponseData = await this.userService.getUserByUserId(payload.userId);
+    return user.data;
+  }
+
+  async dangNhapService(userLogin: SignInDTO): Promise<ResponseData> {
     try {
-      const checkUser = await this.userService.getUserByEmail(user.email);
+      const checkUser = await this.userService.getUserByEmail(userLogin.email);
       if (checkUser.status == HttpStatus.NOT_FOUND) {
         return this.responseHelperService.createResponse(HttpStatus.NOT_FOUND, "email is not found!");
       }
 
+      const isValidPassword = this.isValidPassword(userLogin.mat_khau, checkUser.data.mat_khau);
 
-      
+      if (isValidPassword) {
+        const payload = { userId: checkUser.data.user_id };
+        const access_token = this.jwtService.sign(payload, {
+          secret: this.configService.get<string>("SECRET_KEY"),
+          expiresIn: this.configService.get<string>("EXPIRES_IN")
+        });
+        return this.responseHelperService.createResponse(HttpStatus.OK, "sign in successful!", {
+          access_token
+        });
+      }
+
+      return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "password incorrect!");
 
 
     } catch (error) {

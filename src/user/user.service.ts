@@ -10,13 +10,28 @@ export class UserService {
 
   prisma = new PrismaClient();
 
-
-
   async getUserByEmail(email: string): Promise<ResponseData> {
     try {
       const user = await this.prisma.nguoiDung.findFirst({
         where: {
           email
+        }
+      });
+      if (user) {
+        return this.responseHelperService.createResponse(HttpStatus.OK, "user is exits", user);
+      }
+      return this.responseHelperService.createResponse(HttpStatus.NOT_FOUND, "user is not found");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async getUserByUserId(userId: number): Promise<ResponseData> {
+    try {
+      // console.log("test");
+      const user = await this.prisma.nguoiDung.findFirst({
+        where: {
+          user_id: userId
         }
       });
       if (user) {

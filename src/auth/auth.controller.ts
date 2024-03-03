@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Response } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, Response } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SignUpDTO } from './dto/sign-up.dto';
@@ -18,6 +18,7 @@ export class AuthController {
   @Post("dang-ky")
   async dangKy(@Body() newUser: SignUpDTO, @Response() res) {
     const data: ResponseData = await this.authService.dangKyService(newUser, "user");
+    if (data.status == HttpStatus.CREATED) data.data = {};
     this.responseHelperService.sendResponse(res, data);
   }
 
