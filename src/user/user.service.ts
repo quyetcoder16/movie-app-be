@@ -43,4 +43,17 @@ export class UserService {
     }
   }
 
+  async layDanhSachNguoiDungPhanTrangService(page: number, size: number): Promise<ResponseData> {
+    try {
+
+      const listUser = await this.prisma.nguoiDung.findMany({
+        skip: ((page - 1) * size),
+        take: size
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "lay danh sach nguoi dung phan trang thanh cong!", listUser);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
 }

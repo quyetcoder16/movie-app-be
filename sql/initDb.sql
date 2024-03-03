@@ -1,3 +1,4 @@
+CREATE DATABASE movie;
 use movie;
 
 CREATE TABLE Phim(
