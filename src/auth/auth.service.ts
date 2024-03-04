@@ -33,7 +33,7 @@ export class AuthService {
 
   async dangKyService(newUser: SignUpDTO, loaiNguoiDung: string): Promise<ResponseData> {
     try {
-      const user = await this.userService.getUserByEmail(newUser.email);
+      const user = await this.userService.getUserByEmailService(newUser.email);
       if (user.status == HttpStatus.OK) {
         return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "user is existed");
       }
@@ -58,13 +58,13 @@ export class AuthService {
 
   async validateUserByJwt(payload: any) {
 
-    const user: ResponseData = await this.userService.getUserByUserId(payload.userId);
+    const user: ResponseData = await this.userService.getUserByUserIdService(payload.userId);
     return user.data;
   }
 
   async dangNhapService(userLogin: SignInDTO): Promise<ResponseData> {
     try {
-      const checkUser = await this.userService.getUserByEmail(userLogin.email);
+      const checkUser = await this.userService.getUserByEmailService(userLogin.email);
       if (checkUser.status == HttpStatus.NOT_FOUND) {
         return this.responseHelperService.createResponse(HttpStatus.NOT_FOUND, "email is not found!");
       }

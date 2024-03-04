@@ -5,6 +5,7 @@ import { SignUpDTO } from './dto/sign-up.dto';
 import { ResponseHelperService } from 'src/services/response/response-helper.service';
 import { ResponseData } from 'src/services/response/response.interface';
 import { SignInDTO } from './dto/sign-in.dto';
+import { Role } from 'src/services/roles/rolesConstants';
 
 @ApiTags("Auth")
 @Controller('auth')
@@ -17,7 +18,7 @@ export class AuthController {
   @ApiBody({ type: SignUpDTO })
   @Post("dang-ky")
   async dangKy(@Body() newUser: SignUpDTO, @Response() res) {
-    const data: ResponseData = await this.authService.dangKyService(newUser, "user");
+    const data: ResponseData = await this.authService.dangKyService(newUser, Role.User);
     if (data.status == HttpStatus.CREATED) data.data = {};
     this.responseHelperService.sendResponse(res, data);
   }

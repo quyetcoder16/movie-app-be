@@ -2,6 +2,10 @@ import { HttpCode, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ResponseHelperService } from 'src/services/response/response-helper.service';
 import { ResponseData } from 'src/services/response/response.interface';
+import { CreateUserDto } from './dto/create-user.dto';
+import { Role } from 'src/services/roles/rolesConstants';
+import * as bcrypt from "bcrypt";
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -10,7 +14,13 @@ export class UserService {
 
   prisma = new PrismaClient();
 
-  async getUserByEmail(email: string): Promise<ResponseData> {
+  generateHashPassword = async (password: string): Promise<string> => {
+    const saltOrRounds = 10;
+    const hash = await bcrypt.hash(password, saltOrRounds);
+    return hash
+  }
+
+  async getUserByEmailService(email: string): Promise<ResponseData> {
     try {
       const user = await this.prisma.nguoiDung.findFirst({
         where: {
@@ -26,7 +36,7 @@ export class UserService {
     }
   }
 
-  async getUserByUserId(userId: number): Promise<ResponseData> {
+  async getUserByUserIdService(userId: number): Promise<ResponseData> {
     try {
       // console.log("test");
       const user = await this.prisma.nguoiDung.findFirst({
@@ -51,6 +61,75 @@ export class UserService {
         take: size
       });
       return this.responseHelperService.createResponse(HttpStatus.OK, "lay danh sach nguoi dung phan trang thanh cong!", listUser);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async layDanhSachNguoiDungService(): Promise<ResponseData> {
+    try {
+      const listUser = await this.prisma.nguoiDung.findMany();
+      return this.responseHelperService.createResponse(HttpStatus.OK, "lay danh sach nguoi dung thanh cong!", listUser);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async timkiemNguoiDungTheoHoTenService(hoTen: string): Promise<ResponseData> {
+    try {
+      const listUser = await this.prisma.nguoiDung.findMany({
+        where: {
+          ho_ten: {
+            contains: hoTen,
+          }
+        }
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "tim kiem nguoi dung theo ten thanh cong!", listUser);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async timKiemNguoiDungTheoHoTenPhanTrangService(hoTen: string, page: number, size: number): Promise<ResponseData> {
+    try {
+      const listUser = await this.prisma.nguoiDung.findMany({
+        where: {
+          ho_ten: {
+            contains: hoTen,
+          }
+        },
+        skip: ((page - 1) * size),
+        take: size
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "tim kiem nguoi dung theo ho ten phan trang thanh cong!", listUser);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async themNguoiDungService(newUser: CreateUserDto): Promise<ResponseData> {
+    try {
+      if (newUser.loai_nguoi_dung != Role.Admin && newUser.loai_nguoi_dung != Role.User) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "loai nguoi dung khong dung");
+      }
+      const checkUser = await this.getUserByEmailService(newUser.email);
+      if (checkUser.status == HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "email da ton tai!");
+      }
+      const hashPass = await this.generateHashPassword(newUser.mat_khau);
+      newUser = { ...newUser, mat_khau: hashPass };
+      await this.prisma.nguoiDung.create({
+        data: newUser
+      });
+      return this.responseHelperService.createResponse(HttpStatus.CREATED, "them nguoi dung thanh cong!", newUser);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async capNhatThongTinNguoiDungService(userUpdate: UpdateUserDto): Promise<ResponseData> {
+    try {
+      
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
     }
