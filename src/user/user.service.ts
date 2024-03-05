@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from 'src/services/roles/rolesConstants';
 import * as bcrypt from "bcrypt";
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateAdminDto } from './dto/update-user-admin.dto';
 
 @Injectable()
 export class UserService {
@@ -38,16 +39,19 @@ export class UserService {
 
   async getUserByUserIdService(userId: number): Promise<ResponseData> {
     try {
-      // console.log("test");
-      const user = await this.prisma.nguoiDung.findFirst({
-        where: {
-          user_id: userId
+      if (userId) {
+        const user = await this.prisma.nguoiDung.findFirst({
+          where: {
+            user_id: userId
+          }
+        });
+        if (user) {
+          return this.responseHelperService.createResponse(HttpStatus.OK, "user is exits", user);
         }
-      });
-      if (user) {
-        return this.responseHelperService.createResponse(HttpStatus.OK, "user is exits", user);
+        return this.responseHelperService.createResponse(HttpStatus.NOT_FOUND, "user is not found");
+      } else {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "user_id phai la so!");
       }
-      return this.responseHelperService.createResponse(HttpStatus.NOT_FOUND, "user is not found");
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
     }
@@ -127,11 +131,89 @@ export class UserService {
     }
   }
 
-  async capNhatThongTinNguoiDungService(userUpdate: UpdateUserDto): Promise<ResponseData> {
+  async capNhatThongTinNguoiDungUserService(userUpdate: UpdateUserDto): Promise<ResponseData> {
     try {
-      
+      const checkData = await this.getUserByEmailService(userUpdate.email);
+      if (checkData.data?.user_id != userUpdate.user_id && checkData.status == HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "email da ton tai!");
+      }
+      userUpdate = {
+        ...userUpdate,
+        user_id: +userUpdate.user_id
+      }
+      await this.prisma.nguoiDung.update({
+        where: {
+          user_id: +userUpdate.user_id
+        },
+        data: userUpdate
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "cap nhat thong tin nguoi dung thanh cong");
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async capNhatThongTinNguoiDungAdminService(userUpdate: UpdateAdminDto): Promise<ResponseData> {
+    try {
+
+      const checkUserId = await this.getUserByUserIdService(+userUpdate.user_id);
+
+      if (checkUserId.status !== HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "user_id khong ton tai!");
+      }
+
+      const checkEmailExist = await this.getUserByEmailService(userUpdate.email);
+      if (checkEmailExist.status === HttpStatus.OK && checkEmailExist.data?.user_id != userUpdate.user_id) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "email da ton tai!");
+      }
+      if (userUpdate.loai_nguoi_dung != Role.Admin && userUpdate.loai_nguoi_dung != Role.User) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "loai nguoi dung sai!");
+      }
+
+      const hashPass = await this.generateHashPassword(userUpdate.mat_khau);
+
+      userUpdate = {
+        ...userUpdate,
+        mat_khau: hashPass,
+        user_id: +userUpdate.user_id
+      }
+
+      await this.prisma.nguoiDung.update({
+        where: {
+          user_id: +userUpdate.user_id
+        },
+        data: userUpdate
+      })
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "cap nhat nguoi dung thanh cong!");
+
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async xoaNguoiDungService(user_id: number): Promise<ResponseData> {
+    try {
+      if (user_id) {
+        const checkUserExist = await this.getUserByUserIdService(user_id);
+        if (checkUserExist.status !== HttpStatus.OK) {
+          return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "user_id khong ton tai!");
+        }
+
+        await this.prisma.nguoiDung.delete({
+          where: {
+            user_id: +user_id
+          }
+        });
+
+
+        return this.responseHelperService.createResponse(HttpStatus.OK, "Xoa nguoi dung thanh cong!");
+
+      } else {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "user_id phai la so!");
+      }
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
     }
   }
 

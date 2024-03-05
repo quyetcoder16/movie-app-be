@@ -7,7 +7,7 @@ export class CreateUserDto {
     email: string;
 
     @ApiProperty({ description: "mat_khau", type: String })
-    @Length(6, 25)
+    @Length(6, 32)
     mat_khau: string;
 
     @ApiProperty({ description: "ho_ten", type: String })

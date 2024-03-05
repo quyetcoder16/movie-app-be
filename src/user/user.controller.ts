@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Response, HttpStatus, Request, Post, Body, Put } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Response, HttpStatus, Request, Post, Body, Put, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -9,6 +9,7 @@ import { Role } from 'src/services/roles/rolesConstants';
 import { request } from 'http';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateAdminDto } from './dto/update-user-admin.dto';
 
 
 @ApiTags("User")
@@ -179,7 +180,49 @@ export class UserController {
         message: "Forbidden resource"
       };
     } else {
+      dataRes = await this.userService.capNhatThongTinNguoiDungUserService(userUpdate);
+    }
+    this.responseHelperService.sendResponse(res, dataRes);
+  }
 
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdateAdminDto })
+  @UseGuards(JwtAuthGuard)
+  @Put("cap-nhat-thong-tin-nguoi-dung-by-Admin")
+  async capNhatThongTinNguoiDungByAdmin(@Response() res, @Request() req, @Body() userUpdate: UpdateAdminDto) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+      dataRes = await this.userService.capNhatThongTinNguoiDungAdminService(userUpdate);
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    }
+    this.responseHelperService.sendResponse(res, dataRes);
+  }
+
+  @ApiBearerAuth()
+  @ApiParam({ name: "user_id", type: Number })
+  @UseGuards(JwtAuthGuard)
+  @Delete("xoa-nguoi-dung/:user_id")
+  async xoaNguoiDungByAdmin(@Response() res, @Request() req, @Param("user_id") user_id) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+      dataRes = await this.userService.xoaNguoiDungService(+user_id);
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
     }
     this.responseHelperService.sendResponse(res, dataRes);
   }
