@@ -10,6 +10,7 @@ import { request } from 'http';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateAdminDto } from './dto/update-user-admin.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 
 @ApiTags("User")
@@ -225,6 +226,30 @@ export class UserController {
       }
     }
     this.responseHelperService.sendResponse(res, dataRes);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBody({ type: UpdatePasswordDto })
+  @Post("thay-doi-mat-khau")
+  async thayDoiMatKhau(@Request() req, @Response() res, @Body() updatePass: UpdatePasswordDto) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+
+    if (req.user?.user_id !== updatePass.user_id) {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    } else {
+      dataRes = await this.userService.thayDoiMatKhauService(updatePass);
+    }
+
+    this.responseHelperService.sendResponse(res, dataRes);
+
   }
 
 }

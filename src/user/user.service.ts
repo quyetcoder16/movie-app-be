@@ -7,6 +7,7 @@ import { Role } from 'src/services/roles/rolesConstants';
 import * as bcrypt from "bcrypt";
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateAdminDto } from './dto/update-user-admin.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,10 @@ export class UserService {
   constructor(private readonly responseHelperService: ResponseHelperService) { }
 
   prisma = new PrismaClient();
+
+  isValidPassword = (password: string, hashPassword: string): boolean => {
+    return bcrypt.compareSync(password, hashPassword);
+  }
 
   generateHashPassword = async (password: string): Promise<string> => {
     const saltOrRounds = 10;
@@ -216,5 +221,38 @@ export class UserService {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
     }
   }
+
+
+  async thayDoiMatKhauService(updatePassword: UpdatePasswordDto): Promise<ResponseData> {
+    try {
+      const checkUserId = await this.getUserByUserIdService(updatePassword.user_id);
+      if (checkUserId.status !== HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.NOT_FOUND, "khong tim thay nguoi dung");
+      }
+
+      const checkPassOld = this.isValidPassword(updatePassword.mat_khau_cu, checkUserId.data?.mat_khau);
+
+      if (!checkPassOld) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "mat khau cu khong chinh xac");
+      }
+
+      const hashPass = await this.generateHashPassword(updatePassword.mat_khau_moi);
+
+      await this.prisma.nguoiDung.update({
+        where: {
+          user_id: +updatePassword.user_id
+        },
+        data: {
+          mat_khau: hashPass
+        }
+      });
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "thay doi mat khau thanh cong!");
+
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
 
 }
