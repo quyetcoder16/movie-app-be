@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ResponseHelperService } from './services/response/response-helper.service';
+import { QuanLyBannerModule } from './quan-ly-banner/quan-ly-banner.module';
 
 
 @Module({
@@ -14,6 +15,7 @@ import { ResponseHelperService } from './services/response/response-helper.servi
     }),
     AuthModule,
     UserModule,
+    QuanLyBannerModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseHelperService],

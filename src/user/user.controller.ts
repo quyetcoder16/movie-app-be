@@ -1,6 +1,6 @@
-import { Controller, Get, Param, UseGuards, Response, HttpStatus, Request, Post, Body, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Response, HttpStatus, Request, Post, Body, Put, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ResponseHelperService } from 'src/services/response/response-helper.service';
 import { ResponseData } from 'src/services/response/response.interface';
@@ -11,6 +11,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateAdminDto } from './dto/update-user-admin.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from 'src/services/cloudinary/cloudinary.service';
 
 
 @ApiTags("User")
@@ -20,6 +22,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly responseHelperService: ResponseHelperService,
     private readonly rolesHelperService: RolesHelperService,
+    private cloudinaryService: CloudinaryService,
   ) { }
 
   @ApiBearerAuth()
@@ -250,6 +253,26 @@ export class UserController {
 
     this.responseHelperService.sendResponse(res, dataRes);
 
+  }
+
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'file',
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary'
+        }
+      }
+    }
+  })
+  @Post("/upload-cloud")
+  @UseInterceptors(FileInterceptor("file"))
+  uploadCloud(@UploadedFile("file") file: Express.Multer.File) {
+    return this.cloudinaryService.uploadImage(file);
   }
 
 }
