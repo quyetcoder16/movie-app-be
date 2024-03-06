@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS movie;
 CREATE DATABASE movie;
 use movie;
 
@@ -41,7 +42,7 @@ VALUES
 CREATE TABLE Banner(
 	ma_banner int PRIMARY KEY AUTO_INCREMENT,
 	ma_phim int,
-	FOREIGN KEY(ma_phim) REFERENCES Phim(ma_phim),
+	FOREIGN KEY(ma_phim) REFERENCES Phim(ma_phim) ON DELETE CASCADE,
 	hinh_anh VARCHAR(255)
 );
 
@@ -86,7 +87,7 @@ CREATE TABLE CumRap(
 	ten_cum_rap VARCHAR(255),
 	dia_chi VARCHAR(255),
 	ma_he_thong_rap int,
-	FOREIGN KEY(ma_he_thong_rap) REFERENCES HeThongRap(ma_he_thong_rap)
+	FOREIGN KEY(ma_he_thong_rap) REFERENCES HeThongRap(ma_he_thong_rap) ON DELETE CASCADE
 );
 
 INSERT INTO CumRap (ten_cum_rap, dia_chi, ma_he_thong_rap) VALUES
@@ -101,7 +102,7 @@ CREATE TABLE RapPhim(
 	ma_rap INT PRIMARY KEY AUTO_INCREMENT,
 	ten_rap VARCHAR(255),
 	ma_cum_rap INT,
-	FOREIGN KEY(ma_cum_rap) REFERENCES CumRap(ma_cum_rap)
+	FOREIGN KEY(ma_cum_rap) REFERENCES CumRap(ma_cum_rap) ON DELETE CASCADE
 );
 
 INSERT INTO RapPhim (ten_rap, ma_cum_rap) VALUES
@@ -127,7 +128,7 @@ CREATE TABLE Ghe(
 	ten_ghe VARCHAR(255),
 	loai_ghe VARCHAR(255),
 	ma_rap int,
-	FOREIGN KEY(ma_rap) REFERENCES RapPhim(ma_rap)
+	FOREIGN KEY(ma_rap) REFERENCES RapPhim(ma_rap) ON DELETE CASCADE
 );
 
 INSERT INTO Ghe (ten_ghe, loai_ghe, ma_rap) VALUES
@@ -156,9 +157,9 @@ INSERT INTO Ghe (ten_ghe, loai_ghe, ma_rap) VALUES
 CREATE TABLE LichChieu(
 	ma_lich_chieu INT PRIMARY KEY AUTO_INCREMENT,
 	ma_rap int,
-	FOREIGN KEY(ma_rap) REFERENCES RapPhim(ma_rap),
+	FOREIGN KEY(ma_rap) REFERENCES RapPhim(ma_rap) ON DELETE CASCADE,
 	ma_phim int,
-	FOREIGN KEY(ma_phim) REFERENCES Phim(ma_phim),
+	FOREIGN KEY(ma_phim) REFERENCES Phim(ma_phim) ON DELETE CASCADE,
 	ngay_gio_chieu DATETIME,
 	gia_ve INT
 );
@@ -207,11 +208,11 @@ INSERT INTO NguoiDung (ho_ten, email, so_dt, mat_khau, loai_nguoi_dung) VALUES
 CREATE TABLE DatVe(
 	ma_ve INT PRIMARY KEY AUTO_INCREMENT,
 	user_id INT,
-	FOREIGN KEY(user_id) REFERENCES NguoiDung(user_id),
+	FOREIGN KEY(user_id) REFERENCES NguoiDung(user_id) ON DELETE CASCADE,
 	ma_lich_chieu INT,
-	FOREIGN KEY(ma_lich_chieu) REFERENCES LichChieu(ma_lich_chieu),
+	FOREIGN KEY(ma_lich_chieu) REFERENCES LichChieu(ma_lich_chieu) ON DELETE CASCADE,
 	ma_ghe INT,
-	FOREIGN KEY(ma_ghe) REFERENCES Ghe(ma_ghe)
+	FOREIGN KEY(ma_ghe) REFERENCES Ghe(ma_ghe) ON DELETE CASCADE
 );
 
 INSERT INTO DatVe (user_id, ma_lich_chieu, ma_ghe) VALUES
