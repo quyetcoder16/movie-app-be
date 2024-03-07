@@ -32,5 +32,14 @@ export class PhimService {
     }
   }
 
+  async layDanhSachPhimService(): Promise<ResponseData> {
+    try {
+      const listMovie = await this.prisma.phim.findMany();
+      return this.responseHelperService.createResponse(HttpStatus.OK, "lay danh sach phim thanh cong!", listMovie);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
+    }
+  }
+
 
 }
