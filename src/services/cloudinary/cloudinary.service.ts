@@ -1,6 +1,6 @@
 // tạo fuction upload 
 
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { UploadApiErrorResponse, UploadApiResponse, v2 } from "cloudinary";
 import toStream = require('buffer-to-stream');
 
@@ -18,24 +18,21 @@ export class CloudinaryService {
         });
     }
 
-    // async uploadImage(file: Express.Multer.File): Promise<any> {
-    //     return new Promise((resolve, reject) => {
-    //         const upload = v2.uploader.upload_stream((error, result) => {
-    //             if (error) {
-    //                 reject(error);
-    //             }
-    //             resolve(result);
-    //         });
-    //         file.stream.pipe(upload);
-    //     });
-    // }
-
-    async deleteImage(publicId: string): Promise<any> {
-        return v2.uploader.destroy(publicId, (error, result) => {
-            if (error) {
-                throw new Error('Failed to delete image');
+    async deleteImage(imageUrl: string): Promise<any> {
+        const match = imageUrl.match(/\/v\d+\/([^/]+)\./);
+        if (match && match[1]) {
+            const publicId = match[1];
+            return v2.uploader.destroy(publicId, (error, result) => {
+                if (error) {
+                    throw new Error('Failed to delete image');
+                }
+                return result;
+            });
+        } else {
+            return {
+                result: "Could not extract public ID from the URL",
             }
-            return result;
-        });
+        }
+
     }
 }

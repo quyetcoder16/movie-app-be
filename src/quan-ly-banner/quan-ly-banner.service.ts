@@ -2,12 +2,14 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ResponseHelperService } from 'src/services/response/response-helper.service';
 import { PrismaClient } from '@prisma/client';
 import { ResponseData } from 'src/services/response/response.interface';
+import { CloudinaryService } from 'src/services/cloudinary/cloudinary.service';
 
 @Injectable()
 export class QuanLyBannerService {
 
   constructor(
     private readonly responseHelperService: ResponseHelperService,
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
   prisma = new PrismaClient();
 
@@ -45,11 +47,19 @@ export class QuanLyBannerService {
       if (checkBannerExist.status !== HttpStatus.OK) {
         return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "banner khong ton tai!");
       }
+
+      const checkDelete = await this.cloudinaryService.deleteImage(checkBannerExist.data?.hinh_anh);
+
       await this.prisma.banner.delete({
         where: {
-          ma_banner
+          ma_banner,
         }
       });
+
+      if (checkDelete?.result != 'ok') {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "can't delete images in cloudinary!");
+      }
+
       return this.responseHelperService.createResponse(HttpStatus.OK, "xoa banner thanh cong!");
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
