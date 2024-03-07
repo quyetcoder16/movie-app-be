@@ -56,4 +56,18 @@ export class QuanLyBannerService {
     }
   }
 
+  async taoBannerService(urlUpload: string, ma_phim: number): Promise<ResponseData> {
+    try {
+      await this.prisma.banner.create({
+        data: {
+          ma_phim: +ma_phim,
+          hinh_anh: urlUpload
+        }
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "tao banner thanh cong!");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
+    }
+  }
+
 }

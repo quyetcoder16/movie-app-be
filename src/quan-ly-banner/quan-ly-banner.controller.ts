@@ -8,7 +8,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ResponseData } from 'src/services/response/response.interface';
 import { Role } from 'src/services/roles/rolesConstants';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateQuanLyBannerDto } from './dto/create-quan-ly-banner.dto';
+import { CreateBannerDto } from './dto/create-quan-ly-banner.dto';
+import { PhimService } from 'src/phim/phim.service';
 
 @ApiTags("quan-ly-banner")
 @Controller('quan-ly-banner')
@@ -17,7 +18,8 @@ export class QuanLyBannerController {
     private readonly quanLyBannerService: QuanLyBannerService,
     private readonly responseHelperService: ResponseHelperService,
     private readonly rolesHelperService: RolesHelperService,
-    private cloudinaryService: CloudinaryService,
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly phimService: PhimService,
   ) { }
 
   @Get('lay-danh-sach-banner')
@@ -54,18 +56,39 @@ export class QuanLyBannerController {
     this.responseHelperService.sendResponse(res, dataRes);
   }
 
-  @Post('tao-banner')
-  @UseInterceptors(FileInterceptor('file'))
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Upload image and data',
-    type: CreateQuanLyBannerDto,
+    type: CreateBannerDto,
   })
-  async taoBanner(@UploadedFile() file, @Body() newBanner: CreateQuanLyBannerDto) {
-
-    console.log(newBanner);
-    console.log(file);
-    return 'Upload thành công';
+  @Post('tao-banner')
+  async taoBanner(@UploadedFile() image, @Body() newBanner: CreateBannerDto, @Response() res, @Request() req) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+      const checkPhimExist: ResponseData = await this.phimService.layThongTinChiTietPhimTheoMaPhimService(+newBanner.ma_phim);
+      if (checkPhimExist.status !== HttpStatus.OK) {
+        dataRes = {
+          status: HttpStatus.BAD_REQUEST,
+          message: "phim khong ton tai!"
+        }
+      } else {
+        const dataUpload = await this.cloudinaryService.uploadImage(image);
+        dataRes = await this.quanLyBannerService.taoBannerService(dataUpload?.url, newBanner.ma_phim);
+      }
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    }
+    this.responseHelperService.sendResponse(res, dataRes);
   }
 
 }

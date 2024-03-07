@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreateQuanLyBannerDto } from './create-quan-ly-banner.dto';
+import { CreateBannerDto } from './create-quan-ly-banner.dto';
 
-export class UpdateQuanLyBannerDto extends PartialType(CreateQuanLyBannerDto) {}
+export class UpdateQuanLyBannerDto extends PartialType(CreateBannerDto) { }
