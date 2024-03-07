@@ -41,5 +41,35 @@ export class PhimService {
     }
   }
 
+  async layDanhSachPhimPhanTrangService(page: number, size: number): Promise<ResponseData> {
+    try {
+      const listPhim = await this.prisma.phim.findMany({
+        skip: ((page - 1) * size),
+        take: size
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "lay danh sach phim phan trang thanh cong!", listPhim);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
+    }
+  }
+
+  async layDanhSachTheoNgayService(startDate: Date, endDate: Date, page: number, size: number): Promise<ResponseData> {
+    try {
+      const listPhim = await this.prisma.phim.findMany({
+        where: {
+          ngay_khoi_chieu: {
+            gte: startDate,
+            lte: endDate,
+          }
+        },
+        skip: ((page - 1) * size),
+        take: size
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "lay danh sach phim phan trang thanh cong!", listPhim);
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
+    }
+  }
+
 
 }
