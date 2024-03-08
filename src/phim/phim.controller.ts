@@ -1,12 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request, HttpStatus, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { PhimService } from './phim.service';
 import { CreatePhimDto } from './dto/create-phim.dto';
 import { UpdatePhimDto } from './dto/update-phim.dto';
 import { ResponseHelperService } from 'src/services/response/response-helper.service';
 import { RolesHelperService } from 'src/services/roles/roles-helper.service';
 import { CloudinaryService } from 'src/services/cloudinary/cloudinary.service';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ResponseData } from 'src/services/response/response.interface';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Role } from 'src/services/roles/rolesConstants';
 
 @ApiTags("quan-ly-phim")
 @Controller('phim')
@@ -87,6 +90,40 @@ export class PhimController {
 
     dataRes = await this.phimService.layThongTinChiTietPhimTheoMaPhimService(+ma_phim);
 
+    this.responseHelperService.sendResponse(res, dataRes);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('hinh_anh'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'tao phim moi',
+    type: CreatePhimDto,
+  })
+  @Post('them-phim')
+  async themPhim(@UploadedFile() hinh_anh, @Body() newPhim: CreatePhimDto, @Response() res, @Request() req) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+      if ((+newPhim.danh_gia) < 1 || (+newPhim.danh_gia) > 5) {
+        dataRes = {
+          status: HttpStatus.BAD_REQUEST,
+          message: "danh gia phai tu 1 -> 5!"
+        }
+      } else {
+        const dataUrl = await this.cloudinaryService.uploadImage(hinh_anh);
+        dataRes = await this.phimService.themPhimService(dataUrl?.url, newPhim);
+      }
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    }
     this.responseHelperService.sendResponse(res, dataRes);
   }
 

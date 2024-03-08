@@ -71,5 +71,27 @@ export class PhimService {
     }
   }
 
+  async themPhimService(url_image: string, newPhim: CreatePhimDto): Promise<ResponseData> {
+    try {
+      const Nphim = {
+        ...newPhim,
+        hinh_anh: url_image,
+        dang_chieu: Boolean(newPhim.dang_chieu),
+        sap_chieu: Boolean(newPhim.sap_chieu),
+        hot: Boolean(newPhim.hot),
+        danh_gia: +newPhim.danh_gia,
+        ngay_khoi_chieu: new Date(newPhim.ngay_khoi_chieu)
+      }
+
+      await this.prisma.phim.create({
+        data: Nphim
+      });
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "them phim thanh cong");
+
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
+    }
+  }
 
 }
