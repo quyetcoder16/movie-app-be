@@ -4,12 +4,14 @@ import { UpdatePhimDto } from './dto/update-phim.dto';
 import { ResponseHelperService } from 'src/services/response/response-helper.service';
 import { PrismaClient } from '@prisma/client';
 import { ResponseData } from 'src/services/response/response.interface';
+import { CloudinaryService } from 'src/services/cloudinary/cloudinary.service';
 
 @Injectable()
 export class PhimService {
 
   constructor(
     private readonly responseHelperService: ResponseHelperService,
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
 
   prisma = new PrismaClient();
@@ -91,6 +93,83 @@ export class PhimService {
 
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error", error);
+    }
+  }
+
+  async xoaPhimService(ma_phim: number): Promise<ResponseData> {
+    try {
+      const checkPhimExist = await this.layThongTinChiTietPhimTheoMaPhimService(ma_phim);
+      if (checkPhimExist.status !== HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "phim khong ton tai!");
+      }
+
+      const checkDelete = await this.cloudinaryService.deleteImage(checkPhimExist.data?.hinh_anh);
+
+      await this.prisma.phim.delete({
+        where: {
+          ma_phim
+        }
+      });
+
+      if (checkDelete?.result != 'ok') {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "can't delete images in cloudinary!");
+      }
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "xoa phim thanh cong!");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async capNhatThongTinPhimService(phimUpdate: UpdatePhimDto): Promise<ResponseData> {
+    try {
+      const checkPhimExist = await this.layThongTinChiTietPhimTheoMaPhimService(+phimUpdate.ma_phim);
+      if (checkPhimExist.status != HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "phim khong ton tai!");
+      }
+
+      const updatePhim = {
+        ...phimUpdate,
+        ngay_khoi_chieu: new Date(phimUpdate.ngay_khoi_chieu),
+        dang_chieu: Boolean(phimUpdate.dang_chieu),
+        sap_chieu: Boolean(phimUpdate.sap_chieu),
+        hot: Boolean(phimUpdate.hot),
+        danh_gia: +phimUpdate.danh_gia,
+      }
+
+      await this.prisma.phim.update({
+        where: {
+          ma_phim: +phimUpdate.ma_phim
+        },
+        data: updatePhim
+      });
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "update thong tin phim thanh cong!");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async capNhatHinhAnhPhimService(url: string, phim: ResponseData): Promise<ResponseData> {
+    try {
+
+      const checkDelete = await this.cloudinaryService.deleteImage(phim.data?.hinh_anh);
+      await this.prisma.phim.update({
+        where: {
+          ma_phim: +phim.data?.ma_phim
+        },
+        data: {
+          hinh_anh: url
+        }
+      });
+
+      if (checkDelete?.result != 'ok') {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "can't delete images in cloudinary!");
+      }
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "thay doi hinh anh thanh cong");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
     }
   }
 

@@ -38,7 +38,7 @@ export class QuanLyBannerController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiParam({ name: "ma_banner", type: Number })
-  @Delete('lay-danh-sach-banner/:ma_banner')
+  @Delete('xoa-banner/:ma_banner')
   async xoaBanner(@Response() res, @Request() req, @Param("ma_banner") ma_banner) {
     let dataRes: ResponseData = {
       status: HttpStatus.OK,

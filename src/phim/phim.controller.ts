@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request, HttpStatus, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Request, HttpStatus, UseGuards, UseInterceptors, UploadedFile, Put } from '@nestjs/common';
 import { PhimService } from './phim.service';
 import { CreatePhimDto } from './dto/create-phim.dto';
 import { UpdatePhimDto } from './dto/update-phim.dto';
@@ -10,6 +10,7 @@ import { ResponseData } from 'src/services/response/response.interface';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Role } from 'src/services/roles/rolesConstants';
+import { UpdateAnhPhimDto } from './dto/update-anh-phim.dto';
 
 @ApiTags("quan-ly-phim")
 @Controller('phim')
@@ -118,6 +119,96 @@ export class PhimController {
         const dataUrl = await this.cloudinaryService.uploadImage(hinh_anh);
         dataRes = await this.phimService.themPhimService(dataUrl?.url, newPhim);
       }
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    }
+    this.responseHelperService.sendResponse(res, dataRes);
+  }
+
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiParam({ name: "ma_phim", type: Number })
+  @Delete('xoa-phim/:ma_phim')
+  async xoaBanner(@Response() res, @Request() req, @Param("ma_phim") ma_phim) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+      dataRes = await this.phimService.xoaPhimService(+ma_phim);
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    }
+    this.responseHelperService.sendResponse(res, dataRes);
+  }
+
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdatePhimDto })
+  @UseGuards(JwtAuthGuard)
+  @Put("cap-nhat-thong-tin-phim")
+  async capNhatThongTinNguoiDungByAdmin(@Response() res, @Request() req, @Body() phimUpdate: UpdatePhimDto) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+
+      if ((+phimUpdate.danh_gia) < 1 || (+phimUpdate.danh_gia) > 5) {
+        dataRes = {
+          status: HttpStatus.BAD_REQUEST,
+          message: "danh gia phai tu 1 -> 5!"
+        }
+      } else {
+        dataRes = await this.phimService.capNhatThongTinPhimService(phimUpdate);
+      }
+    } else {
+      dataRes = {
+        status: HttpStatus.FORBIDDEN,
+        message: "Forbidden resource"
+      }
+    }
+    this.responseHelperService.sendResponse(res, dataRes);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('hinh_anh'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'thay doi anh phim',
+    type: UpdateAnhPhimDto,
+  })
+  @Put('thay-doi-anh-cho-phim')
+  async thayDoiAnhPhim(@UploadedFile() hinh_anh, @Body() updateAnhPhim: UpdateAnhPhimDto, @Response() res, @Request() req) {
+    let dataRes: ResponseData = {
+      status: HttpStatus.OK,
+      message: "",
+      data: {}
+    }
+    if (this.rolesHelperService.checkRole(req.user, Role.Admin)) {
+
+      const checkPhimExist: ResponseData = await this.phimService.layThongTinChiTietPhimTheoMaPhimService(+updateAnhPhim.ma_phim);
+      if (checkPhimExist.status === HttpStatus.OK) {
+        const dataUrl = await this.cloudinaryService.uploadImage(hinh_anh);
+        dataRes = await this.phimService.capNhatHinhAnhPhimService(dataUrl?.url, checkPhimExist);
+      } else {
+        dataRes = {
+          status: HttpStatus.NOT_FOUND,
+          message: "phim khong ton tai!"
+        }
+      }
+      // const dataUrl = await this.cloudinaryService.uploadImage(hinh_anh);
+
+
     } else {
       dataRes = {
         status: HttpStatus.FORBIDDEN,

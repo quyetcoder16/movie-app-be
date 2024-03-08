@@ -255,24 +255,4 @@ export class UserController {
 
   }
 
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'file',
-    type: 'multipart/form-data',
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary'
-        }
-      }
-    }
-  })
-  @Post("/upload-cloud")
-  @UseInterceptors(FileInterceptor("file"))
-  uploadCloud(@UploadedFile("file") file: Express.Multer.File) {
-    return this.cloudinaryService.uploadImage(file);
-  }
-
 }
