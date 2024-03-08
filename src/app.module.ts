@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { ResponseHelperService } from './services/response/response-helper.service';
 import { QuanLyBannerModule } from './quan-ly-banner/quan-ly-banner.module';
 import { PhimModule } from './phim/phim.module';
+import { HeThongRapModule } from './he-thong-rap/he-thong-rap.module';
 
 
 @Module({
@@ -18,6 +19,7 @@ import { PhimModule } from './phim/phim.module';
     UserModule,
     QuanLyBannerModule,
     PhimModule,
+    HeThongRapModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseHelperService],
