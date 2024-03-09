@@ -15,7 +15,7 @@ export class HeThongRapService {
 
   prisma = new PrismaClient();
 
-  async layDanhSachHeThongRap(): Promise<ResponseData> {
+  async layDanhSachHeThongRapService(): Promise<ResponseData> {
     try {
       const listHeThongRap = await this.prisma.heThongRap.findMany();
 
@@ -26,7 +26,7 @@ export class HeThongRapService {
     }
   }
 
-  async layThongTinChiTietHeThongRap(ma_he_thong_rap: Number): Promise<ResponseData> {
+  async layThongTinChiTietHeThongRapService(ma_he_thong_rap: Number): Promise<ResponseData> {
     try {
       const heThongRap = await this.prisma.heThongRap.findFirst({
         where: {
@@ -44,5 +44,71 @@ export class HeThongRapService {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
     }
   }
+
+  async themHeThongRapService(url_logo: string, newHTR: CreateHeThongRapDto): Promise<ResponseData> {
+    try {
+      const newHeThongRap = {
+        ...newHTR,
+        logo: url_logo
+      }
+      await this.prisma.heThongRap.create({
+        data: newHeThongRap
+      });
+      return this.responseHelperService.createResponse(HttpStatus.OK, "them he thong rap thanh cong");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async xoaHeThongRapService(ma_he_thong_rap: number): Promise<ResponseData> {
+    try {
+      const checkHTR = await this.layThongTinChiTietHeThongRapService(ma_he_thong_rap);
+      if (checkHTR.status !== HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "he thong rap khong ton tai!");
+      }
+
+      const checkDelete = await this.cloudinaryService.deleteImage(checkHTR.data?.logo);
+
+      await this.prisma.heThongRap.delete({
+        where: {
+          ma_he_thong_rap
+        }
+      });
+
+      if (checkDelete?.result != 'ok') {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "can't delete logo in cloudinary!");
+      }
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "xoa he thong rap thanh cong!");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+  async capNhatHeThongRapService(url: string, HTR: ResponseData, updateHTR: UpdateHeThongRapDto): Promise<ResponseData> {
+    try {
+
+      const checkDelete = await this.cloudinaryService.deleteImage(HTR.data?.logo);
+      await this.prisma.heThongRap.update({
+        where: {
+          ma_he_thong_rap: +HTR.data?.ma_he_thong_rap
+        },
+        data: {
+          ten_he_thong_rap: updateHTR.ten_he_thong_rap,
+          logo: url,
+        }
+      });
+
+      if (checkDelete?.result != 'ok') {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "can't delete images in cloudinary!");
+      }
+
+      return this.responseHelperService.createResponse(HttpStatus.OK, "cap nhat he thong rap thanh cong");
+    } catch (error) {
+      return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
+    }
+  }
+
+
 
 }

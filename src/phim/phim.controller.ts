@@ -206,9 +206,6 @@ export class PhimController {
           message: "phim khong ton tai!"
         }
       }
-      // const dataUrl = await this.cloudinaryService.uploadImage(hinh_anh);
-
-
     } else {
       dataRes = {
         status: HttpStatus.FORBIDDEN,

@@ -8,6 +8,7 @@ import { ResponseHelperService } from './services/response/response-helper.servi
 import { QuanLyBannerModule } from './quan-ly-banner/quan-ly-banner.module';
 import { PhimModule } from './phim/phim.module';
 import { HeThongRapModule } from './he-thong-rap/he-thong-rap.module';
+import { CumRapModule } from './cum-rap/cum-rap.module';
 
 
 @Module({
@@ -20,6 +21,7 @@ import { HeThongRapModule } from './he-thong-rap/he-thong-rap.module';
     QuanLyBannerModule,
     PhimModule,
     HeThongRapModule,
+    CumRapModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseHelperService],
