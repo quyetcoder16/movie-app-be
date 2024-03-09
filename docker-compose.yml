@@ -1,0 +1,24 @@
+version: '3'
+services:
+  mysql_db:
+    image: mysql
+    container_name: mysql_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    ports:
+      - 3308:3306
+    networks:
+      - node38-networks
+  node38:
+    depends_on:
+      - mysql_db
+    build: .
+    container_name: node38_nest
+    env_file:
+      - .env
+    ports:
+      - 3005:3001
+    networks:
+      - node38-networks
+networks:
+  node38-networks:
