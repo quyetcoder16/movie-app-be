@@ -27,7 +27,7 @@ export class CumRapService {
     }
   }
 
-  async layThongTinChiTietCumRapService(ma_cum_rap: Number): Promise<ResponseData> {
+  async layThongTinChiTietCumRapService(ma_cum_rap: number): Promise<ResponseData> {
     try {
       const cumRap = await this.prisma.cumRap.findFirst({
         where: {

@@ -9,6 +9,7 @@ import { QuanLyBannerModule } from './quan-ly-banner/quan-ly-banner.module';
 import { PhimModule } from './phim/phim.module';
 import { HeThongRapModule } from './he-thong-rap/he-thong-rap.module';
 import { CumRapModule } from './cum-rap/cum-rap.module';
+import { RapPhimModule } from './rap-phim/rap-phim.module';
 
 
 @Module({
@@ -22,6 +23,7 @@ import { CumRapModule } from './cum-rap/cum-rap.module';
     PhimModule,
     HeThongRapModule,
     CumRapModule,
+    RapPhimModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseHelperService],
