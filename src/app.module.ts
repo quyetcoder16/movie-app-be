@@ -12,6 +12,7 @@ import { CumRapModule } from './cum-rap/cum-rap.module';
 import { RapPhimModule } from './rap-phim/rap-phim.module';
 import { GheModule } from './ghe/ghe.module';
 import { LichChieuModule } from './lich-chieu/lich-chieu.module';
+import { QuanLyVeModule } from './quan-ly-ve/quan-ly-ve.module';
 
 
 @Module({
@@ -28,6 +29,7 @@ import { LichChieuModule } from './lich-chieu/lich-chieu.module';
     RapPhimModule,
     GheModule,
     LichChieuModule,
+    QuanLyVeModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseHelperService],
