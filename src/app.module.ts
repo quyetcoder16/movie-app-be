@@ -10,6 +10,7 @@ import { PhimModule } from './phim/phim.module';
 import { HeThongRapModule } from './he-thong-rap/he-thong-rap.module';
 import { CumRapModule } from './cum-rap/cum-rap.module';
 import { RapPhimModule } from './rap-phim/rap-phim.module';
+import { GheModule } from './ghe/ghe.module';
 
 
 @Module({
@@ -24,6 +25,7 @@ import { RapPhimModule } from './rap-phim/rap-phim.module';
     HeThongRapModule,
     CumRapModule,
     RapPhimModule,
+    GheModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseHelperService],

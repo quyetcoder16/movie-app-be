@@ -47,6 +47,12 @@ export class RapPhimService {
 
   async layThongTinRapPhimTheoCumRapService(ma_cum_rap: number): Promise<ResponseData> {
     try {
+
+      const checkCumRap = await this.cumRapService.layThongTinChiTietCumRapService(+ma_cum_rap);
+      if (checkCumRap.status != HttpStatus.OK) {
+        return this.responseHelperService.createResponse(HttpStatus.BAD_REQUEST, "cum rap khong ton tai!");
+      }
+
       const rapPhim = await this.prisma.rapPhim.findMany({
         where: {
           ma_cum_rap: +ma_cum_rap
@@ -75,7 +81,7 @@ export class RapPhimService {
         data: newRap
       });
 
-      return this.responseHelperService.createResponse(HttpStatus.OK, "them rap phim thanh cong!");
+      return this.responseHelperService.createResponse(HttpStatus.CREATED, "them rap phim thanh cong!");
 
     } catch (error) {
       return this.responseHelperService.createResponse(HttpStatus.BAD_GATEWAY, "server error");
